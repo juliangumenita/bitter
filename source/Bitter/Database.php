@@ -2,25 +2,8 @@
   namespace Bitter;
 
   class Database{
-
-    private static $host = Config::get("host");
-    private static $username = Config::get("username");
-    private static $password = Config::get("password");
-    private static $database = Config::get("database");
-
     private static $connected = false;
     private static $connection;
-
-    /**
-    * Use other configuration by creating a new object.
-    * @return void
-    */
-    public function __construct($host, $username, $password, $database){
-      self::$host = $host;
-      self::$username = $username;
-      self::$password = $password;
-      self::$database = $database;
-    }
 
     /**
     * Connect to the database.
@@ -29,17 +12,19 @@
     public static function init():bool{
       if(!isset(self::$connection)){
         self::$connection = @mysqli_connect(
-          self::$host,
-          self::$username,
-          self::$password,
-          self::$database
+          Config::get("host"),
+          Config::get("username"),
+          Config::get("password"),
+          Config::get("database")
         );
         if(!mysqli_connect_errno(self::$connection)){
           mysqli_set_charset(self::$connection, "utf8");
           /* Sets the default charset to UTF8. */
           self::$connected = true;
           return true;
-        }
+        } else {
+          throw new \Exception("Database connection error.");
+        } return false;
       } return false;
     }
 
@@ -61,7 +46,7 @@
       self::init();
       if(self::connected()){
         return @mysqli_real_escape_string(self::$connection, $data);
-      } return false;
+      } return $data;
     }
 
     /**
@@ -106,7 +91,7 @@
         }
       } return 0;
     }
-    public static function exist(string $query):bool{
+    public static function exists(string $query):bool{
       self::init();
       if(self::connected()){
         return (self::_count($query) > 0) ? true : false;

@@ -44,7 +44,7 @@
 
       $list = str_shuffle($list);
 
-      $charset = $list[$mode];
+      $charset = str_shuffle($list[$mode]);
       $lenght = strlen($charset);
       $string = null;
       for ($i = 0; $i < $lenght; $i++) {

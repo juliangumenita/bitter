@@ -7,6 +7,7 @@
     public $success = false;
     public $error = true;
     public $message;
+    public $code;
     public $data = null;
 
 
@@ -20,7 +21,7 @@
       $group = explode("@", $controller);
 
       $module = $group[0] . "Controller";
-      $method = "default";
+      $method = "index";
       if(count($group) > 1){
         $method = $group[1];
       }
@@ -36,31 +37,21 @@
       return $dispatcher;
     }
 
-
-    /**
-    * Get data.
-    * @param key
-    * @param vanguard
-    * @return mixed
-    */
-    public function data($key = null, $vanguard = null){
-      if(isset($key)){
-        return $this->data[$key];
-      } return $this->data;
-    }
-
-
     /**
     * Set data.
     * @param key
     * @param set
     * @return void
     */
-    public function set($set = []){
-      $this->data = $set;
-      return;
+    public function data($data = null, $key = null, $default = null){
+      if(is_null($data)){
+        if(is_null($key)){
+          return $this->data;
+        } elseif (array_key_exists($key, $this->data)){
+          return $this->data[$key];
+        } return $default;
+      } $this->data = $data;
     }
-
 
     /**
     * Set success.
@@ -88,16 +79,14 @@
     }
 
     /**
-    * Return json data.
-    * @return void
+    * Returns default value of request if not set.
+    * @return mixed
     */
-    public function json(){
-      return json_encode([
-        "success" => $this->success,
-        "error" => $this->error,
-        "message" => $this->message,
-        "data" => $this->data
-      ], JSON_UNESCAPED_UNICODE);
+    public function default($key, $default){
+      if(isset($this->request[$key])){
+        return $this->request[$key];
+      } return $default;
     }
+
   }
 ?>

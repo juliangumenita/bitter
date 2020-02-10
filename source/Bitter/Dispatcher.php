@@ -10,8 +10,8 @@
     * @return Dispatcher
     */
     public static function run(string $dispatcher, $request = []){
-      if(file_exists(__DIR__ . "/../../dispatcher/$dispatcher.php")){
-        require __DIR__ . "/../../dispatcher/$dispatcher.php";
+      if(file_exists("dispatcher/$dispatcher.php")){
+        require "dispatcher/$dispatcher.php";
       }
     }
 

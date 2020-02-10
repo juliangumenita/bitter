@@ -3,12 +3,6 @@
 
   class Network{
 
-    const LOCATION = "location";
-
-    private static $headers = [
-      "location" => "Location"
-    ];
-
     /**
     * Returns the ip address of client.
     * @return mixed
@@ -28,12 +22,8 @@
     * @return mixed
     */
     public static function header($headers = [], $exit = false){
-      $query = null;
-
       foreach($headers as $header => $value){
-        array_key_exists($header, self::$headers){
-          header("$header: $value");
-        }
+        @header("$header: $value");
       }
 
       if($exit){

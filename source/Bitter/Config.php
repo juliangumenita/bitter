@@ -3,38 +3,24 @@
 
   class Config{
 
-    const HOST = "localhost";
-    /* Database host ip or url. */
-
-    const USERNAME = "root";
-    /* MySQL username. */
-
-    const PASSWORD = "";
-    /* MySQL password. */
-
-    const DATABASE = "database";
-    /* MySQL database name to use. */
-
-    const SLUG = "";
-    /*
-      If it is under a folder and not root folder.
-      Example: /project-name
+    /**
+    * Get config.
+    * @return mixed
     */
-
     public static function get($key){
       if(file_exists(".config")){
         $config = json_decode(
-          file_get_contents(".config")
+          file_get_contents(".config"), true
         );
-        if(isset($config[$key])){
+        if(array_key_exists($key, $config)){
           return $config[$key];
+        } else {
+          throw new \Exception("Config not found.");
         } return false;
       } else {
-        $upper = mb_strtoupper($key, "UTF-8");
-        if(isset(self::$upper)){
-          return self::$upper;
-        }
+        throw new \Exception("Config file not found.");
       } return false;
     }
+
   }
 ?>

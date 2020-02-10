@@ -3,19 +3,32 @@
 
   class Route{
 
-    public static $uri;
+    public static $started = false;
+    public static $url;
     public static $used = false;
-    public static $get = [];
+    public static $parameters = [];
+
+    /**
+    * Init.
+    * @return void
+    */
+    public static function init(){
+      if(!self::$started){
+        self::$started = true;
+        self::start();
+      }
+    }
 
     /**
     * Get the key of url variables.
     * @return mixed
     */
-    public static function get($key){
-      $get = self::$get;
-      if(is_array($get)){
-        if(isset($get[$key])){
-          return $get[$key];
+    public static function parameter($key){
+      self::init();
+      $parameters = self::$parameters;
+      if(is_array($parameters)){
+        if(isset($parameters[$key])){
+          return $parameters[$key];
         } return null;
       } return null;
     }
@@ -25,13 +38,14 @@
     * @return void
     */
     public static function start(){
-      self::$uri = urldecode(
+      self::init();
+      self::$url = urldecode(
         parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH)
       );
 
-      $path = "public" . str_replace(Config::get("slug"), null, self::$uri);
+      $path = "public" . str_replace(Config::get("slug"), null, self::$url);
 
-      if(file_exists($path) && is_file($path) && self::$uri !== "/"){
+      if(file_exists($path) && is_file($path) && self::$url !== "/"){
         $ext = pathinfo($path, PATHINFO_EXTENSION);
         $mime = Mime::mime($ext);
         header("Content-type: $mime;");
@@ -44,24 +58,6 @@
     }
 
     /**
-    * Print controller.
-    * @return void
-    */
-    public static function controller($match, string $controller, $request = []){
-      if(self::match($match)){
-        self::variables($match);
-        if(empty($request)){
-          $requst = json_decode(file_get_contents("php://input"), true);
-        }
-        if(!self::$used){
-          self::$used = true;
-          $controller = Controller::request($controller, $request);
-          print($controller->json());
-        }
-      }
-    }
-
-    /**
     * Get string in a string between to strings.
     * @param string
     * @param start
@@ -70,6 +66,7 @@
     * @return array
     */
     private static function between($string, $start, $end, $multiple = false){
+      self::init();
       $result = [];
       foreach (explode($start, $string) as $key => $value) {
         if(strpos($value, $end) !== false){
@@ -85,7 +82,9 @@
     * @return bool
     */
     public static function match($match){
-      if(self::$uri === $match){
+      self::init();
+      $match = Config::get("slug") . $match;
+      if(self::$url === $match){
         return true;
       }
 
@@ -117,10 +116,10 @@
         }
       }
 
-      preg_match("/$general/", self::$uri, $output);
+      preg_match("/$general/", self::$url, $output);
 
       if(!empty($output)){
-        if($output[0] == self::$uri){
+        if($output[0] == self::$url){
           return true;
         } return false;
       } return false;
@@ -131,6 +130,7 @@
     * @return bool
     */
     public static function variables($match){
+      self::init();
       /* We first break down structure. */
       $entities = explode("/", $match);
       $entities = array_filter($entities);
@@ -169,19 +169,19 @@
       }
 
       /* We are going to store our get variables here. */
-      $get = [];
+      $parameters = [];
 
       /* Get variables from url using the variables. */
       foreach($fetches as $f => $fetch){
         $output = [];
 
-        preg_match("/$fetch/", self::$uri, $output);
+        preg_match("/$fetch/", self::$url, $output);
 
-        $get[$f] = $output[1];
+        $parameters[$f] = $output[1];
       }
 
-      self::$get = $get;
-      return $get;
+      self::$parameters = $parameters;
+      return $parameters;
     }
 
     /**
@@ -189,6 +189,7 @@
     * @return void
     */
     public static function canvas($match, string $canvas, $dispatchers = []){
+      self::init();
       if(self::match($match)){
         if(!self::$used && file_exists(__DIR__ . "/../../canvas/$canvas.php")){
           self::$used = true;
@@ -204,18 +205,24 @@
     }
 
     /**
-    * Finish and give 404 error.
+    * Finish and give 404 page.
     * @return void
     */
-    public static function end(){
+    public static function missing($match, string $canvas, $dispatchers = []){
+      self::init();
       if(!self::$used){
-        print(json_encode([
-          "success" => false,
-          "error" => true,
-          "message" => "Incorrect route has been called.",
-          "data" => []
-        ], JSON_UNESCAPED_UNICODE));
+        if(!self::$used && file_exists(__DIR__ . "/../../canvas/$canvas.php")){
+          self::$used = true;
+          self::variables($match);
+          foreach($dispatchers as $dispatcher) {
+            if(file_exists(__DIR__ . "/../../dispatcher/$dispatcher.php")){
+              require_once __DIR__ . "/../../dispatcher/$dispatcher.php";
+            }
+          }
+          require_once __DIR__ . "/../../canvas/$canvas.php";
+        }
       }
     }
+
   }
 ?>
