@@ -42,8 +42,6 @@
         self::LOWERCASE_UPPERCASE => $set["lowercase"] . $set["uppercase"]
       );
 
-      $list = str_shuffle($list);
-
       $charset = str_shuffle($list[$mode]);
       $lenght = strlen($charset);
       $string = null;

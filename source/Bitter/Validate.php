@@ -2,7 +2,7 @@
   namespace Bitter;
 
   class Validate{
-    
+
     public static function rules($request, $parameters){
       $optionals = [];
 
@@ -45,7 +45,7 @@
         case "min": return self::min($object->value, intval($rule[1]));
         case "exists": return self::exists($object, $rule[1]);
         case "unique": return self::unique($object, $rule[1]);
-      } return "what";
+      } return false;
     }
 
     public static function exists(Rule $rule, $table){
