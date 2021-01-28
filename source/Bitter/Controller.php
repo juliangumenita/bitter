@@ -17,11 +17,11 @@
     * @param request
     * @return Controller
     */
-    public static function request(string $controller, $request = []){
+    public static function get(string $controller, $request = []){
       $group = explode("@", $controller);
 
       $module = $group[0] . "Controller";
-      $method = "index";
+      $method = "start";
       if(count($group) > 1){
         $method = $group[1];
       }
@@ -78,14 +78,23 @@
       return;
     }
 
-    /**
-    * Returns default value of request if not set.
-    * @return mixed
-    */
-    public function default($key, $default){
+    public function value($key, $default = null){
       if(isset($this->request[$key])){
         return $this->request[$key];
       } return $default;
+    }
+
+    public function token(){
+      $token = Database::fetch(
+        Query::build("SELECT `user` FROM `tokens` WHERE `token` = :token;", [
+          "token" => $this->val("token")
+        ]), "user"
+      );
+
+      if(empty($token)){
+        $token = 0;
+      }
+      return $token;
     }
 
   }

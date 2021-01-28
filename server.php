@@ -1,4 +1,11 @@
 <?php
   require "init.php";
-  require __DIR__ . "/public/root.php";
+
+  use Bitter\Route;
+  use Bitter\API;
+
+  Route::start();
+  API::start();
+
+  require __DIR__ . "/app/root.php";
 ?>

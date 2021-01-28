@@ -3,6 +3,14 @@
 
   class Query{
 
+    public static function exists($table, $key, $value){
+      return self::build("SELECT @key FROM @table WHERE @key = :value;", [
+        "table" => $table,
+        "key" => $key,
+        "value" => $value
+      ]);
+    }
+
     public static function build($query, $values){
       foreach($values as $key => $value){
         $query = str_replace(":$key", self::value($value), $query);

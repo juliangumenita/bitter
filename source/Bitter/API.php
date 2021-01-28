@@ -2,31 +2,18 @@
   namespace Bitter;
 
   class API{
-    public static $started = false;
     public $data;
     public $success;
     public $error;
     public $message;
+    public static $used = false;
 
-    /**
-    * Init.
-    * @return void
-    */
-    private static function init(){
-      if(!self::$started){
-        self::$started = true;
-        self::start();
-      }
-    }
-
-    private static function parameter($key){
-      self::init();
+    public static function parameter($key){
       return Route::parameter($key);
     }
 
-    private static function start(){
-      self::init();
-      header("Content-Type: application/json");
+    public static function start(){
+      @header("Content-Type: application/json");
       return Route::start();
     }
 
@@ -35,7 +22,6 @@
     * @return void
     */
     public static function missing(){
-      self::init();
       if(!self::$used){
         print(json_encode([
           "success" => false,
@@ -47,11 +33,12 @@
     }
 
     public static function post($url, $controller, $parameters = []){
-      self::init();
       $request = json_decode(file_get_contents("php://input"), true);
 
-      if(Route::match($url)){
+      if(Route::match($url) && !Route::$used){
         Route::$used = true;
+        Route::variables($url);
+        self::$used = true;
 
         $result = Validate::rules($request, $parameters);
         if($result->error){
@@ -62,13 +49,16 @@
             "data" => null,
           ]);
         } else {
-          $controller = Controller::request($controller);
-          echo json_encode([
-            "success" => $controller->success,
-            "error" => $controller->error,
-            "message" => $controller->message,
-            "data" => $controller->data,
-          ]);
+          $controller = Controller::get($controller);
+
+          if(!Response::$rolled){
+            echo json_encode([
+              "success" => $result->success,
+              "error" => $result->error,
+              "message" => $result->message,
+              "data" => null,
+            ]);
+          }
         }
       }
 
